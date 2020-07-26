@@ -45,7 +45,7 @@ build-relase:
 test: test-all
 
 test-all:
-	@go test -v $(GOPACKAGES) -coverprofile .testCoverage.txt
+	go test $(GOPACKAGES) -v -race -coverprofile=cover.out -covermode=atomic
 
 bench: bench-all
 
