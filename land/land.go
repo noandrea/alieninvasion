@@ -22,7 +22,7 @@ const (
 )
 
 // map file line spec validation
-var specValidator = regexp.MustCompile(`^([a-zA-Z][a-zA-Z1-9-]+)(\s+(north|west|south|east)=([a-zA-Z][a-zA-Z0-9-]*))*$`)
+var specValidator = regexp.MustCompile(`^([a-zA-Z][a-zA-Z1-9-]+)(\s+(north|west|south|east)=([a-zA-Z][a-zA-Z0-9-]*))*\s*$`)
 
 // hash calculate the hash of a string
 // we use adler since it is fast and produces short hashes
@@ -176,6 +176,9 @@ func parseMapLine(land *Land, specs string) (err error) {
 	for _, neighbor := range pieces[1:] {
 		// shortest direction is east/west 4 characters
 		x := strings.Index(neighbor, "=")
+		if x < 0 {
+			continue
+		}
 		targetName := neighbor[x+1:]
 		target := AddCity(land, targetName)
 		// parse the direction
