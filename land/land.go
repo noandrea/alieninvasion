@@ -8,9 +8,15 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/gosimple/slug"
 	log "github.com/sirupsen/logrus"
+)
+
+// special city
+const (
+	Space = uint32(0)
 )
 
 // Define the directions
@@ -57,6 +63,8 @@ type Land struct {
 	routes map[uint32]map[int8]uint32
 	// quick way to know if a route exists
 	routeH map[uint32]int8
+	// lock for read and write ops
+	mutex sync.RWMutex
 }
 
 // NewLand creates a new land
@@ -78,10 +86,11 @@ func Size(land *Land) (cities int, routes int) {
 // AddCity add a city and retrieve the city ID
 // if the city is already there then the existing uid
 // will returned
-func AddCity(l *Land, name string) (id uint32) {
+func AddCity(land *Land, name string) (id uint32) {
 	id = hash(slug.Make(name))
-	if _, found := l.cities[id]; !found {
-		l.cities[id] = name
+	if _, found := land.cities[id]; !found {
+		log.Debug("New city ", name, " - ", id)
+		land.cities[id] = name
 	}
 	return
 }
@@ -134,6 +143,8 @@ func AddRoute(l *Land, from, to uint32, direction int8) (err error) {
 
 // DestroyCity remove a city and all the routes from/to it
 func DestroyCity(land *Land, id uint32) {
+	land.mutex.Lock()
+	defer land.mutex.Unlock()
 	if routes, ex := land.routes[id]; ex {
 		for d, t := range routes {
 			delete(land.routes[t], d*-1)
@@ -147,12 +158,59 @@ func DestroyCity(land *Land, id uint32) {
 
 // Optimize remove nodes without edges
 func Optimize(land *Land) {
+	land.mutex.Lock()
+	defer land.mutex.Unlock()
 	for id, routes := range land.routes {
 		if len(routes) == 0 {
 			delete(land.routes, id)
 			delete(land.cities, id)
 		}
 	}
+}
+
+// GetCityName get the city name from its id
+func GetCityName(land *Land, cityID uint32) string {
+	if cityID == Space {
+		return "Space"
+	}
+	n, ex := land.cities[cityID]
+	if !ex {
+		return "Unknown"
+	}
+	return n
+}
+
+// MoveFrom randomly select a new city randomly from the available routes
+func MoveFrom(land *Land, cityID uint32) (next uint32, err error) {
+	// special case, they are coming form space, choose a random location
+	if cityID == Space {
+		if len(land.cities) == 0 {
+			err = fmt.Errorf("There are no city left")
+			return
+		}
+		for cID := range land.cities {
+			next = cID
+			return
+		}
+	}
+	routes, ex := land.routes[cityID]
+	// the city has been deleted
+	if !ex {
+		err = fmt.Errorf("City does not exists %v", cityID)
+		return
+	}
+	// all surrounding cites have been deleted
+	if len(routes) == 0 {
+		err = fmt.Errorf("There are no routes left %v", cityID)
+		return
+	}
+	// get one route
+	for _, t := range routes {
+		next = t
+		break
+	}
+	return
+
 }
 
 // LoadFromFile load a land definition from a file
@@ -207,6 +265,35 @@ func parseMapLine(land *Land, specs string) (err error) {
 			fmt.Println("SKIP invalid route from", srcName, "to", targetName, "via", dirName)
 			log.Debug(err)
 		}
+	}
+	return
+}
+
+// SaveToFile save the map of the land to file
+func SaveToFile(land *Land, mapFile string) (err error) {
+	file, err := os.Create(mapFile)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+	Optimize(land)
+
+	for s, routes := range land.routes {
+		line := []string{GetCityName(land, s)}
+		for d, t := range routes {
+			dirName := "north"
+			switch d {
+			case East:
+				dirName = "east"
+			case South:
+				dirName = "south"
+			case West:
+				dirName = "west"
+			}
+			line = append(line, fmt.Sprint(dirName, "=", GetCityName(land, t)))
+		}
+		_, err = file.WriteString(strings.Join(line, " "))
+		_, err = file.WriteString("\n")
 	}
 	return
 }

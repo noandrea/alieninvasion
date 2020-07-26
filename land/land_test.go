@@ -183,3 +183,44 @@ func TestLoadFromFile(t *testing.T) {
 		})
 	}
 }
+
+func TestMoveFrom(t *testing.T) {
+
+	l := NewLand()
+	c0 := AddCity(l, "city_0")
+	c1 := AddCity(l, "city_1")
+	AddRoute(l, c0, c1, North)
+	c2 := AddCity(l, "city_2")
+	// add and remove city
+	c3 := AddCity(l, "city_c3")
+	c4 := AddCity(l, "city_c4")
+	AddRoute(l, c3, c4, East)
+	DestroyCity(l, c4)
+
+	type args struct {
+		land   *Land
+		cityID uint32
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantNext uint32
+		wantErr  bool
+	}{
+		{"1", args{l, c0}, c1, false},
+		{"2", args{l, c2}, 0, true}, // nowhere to go
+		{"2", args{l, c3}, 0, true}, // nowhere to go
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotNext, err := MoveFrom(tt.args.land, tt.args.cityID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MoveFrom() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotNext != tt.wantNext {
+				t.Errorf("MoveFrom() = %v, want %v", gotNext, tt.wantNext)
+			}
+		})
+	}
+}
