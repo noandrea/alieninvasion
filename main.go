@@ -23,6 +23,9 @@ package main
 
 import "github.com/noandrea/alieninvasion/cmd"
 
+// Version the program version
+var Version = "0.0.0"
+
 func main() {
-  cmd.Execute()
+	cmd.Execute(Version)
 }
