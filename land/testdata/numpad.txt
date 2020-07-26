@@ -1,0 +1,7 @@
+C1 west=C2 south=C4
+C3 east=C2 south=C6
+C5 north=C2 west=C6 south=C8 east=C4
+C7 north=C4 
+C8 west=C9 east=C7 south=C0
+C9 north=C6
+C6 south=C9

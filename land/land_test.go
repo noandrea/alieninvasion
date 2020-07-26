@@ -2,6 +2,7 @@ package land
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
@@ -146,6 +147,38 @@ func TestDestroyCity(t *testing.T) {
 			}
 			if e != tt.args.eLeft {
 				t.Errorf("DestroyCity() = edges(%v), want %v", e, tt.args.eLeft)
+			}
+		})
+	}
+}
+
+func TestLoadFromFile(t *testing.T) {
+
+	type args struct {
+		land    *Land
+		mapFile string
+		nodes   int
+		edges   int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{"numpad", args{NewLand(), "numpad.txt", 10, 13}, false},
+		{"numpad-witherrors", args{NewLand(), "numpad-witherrors.txt", 3, 2}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := LoadFromFile(tt.args.land, filepath.Join("testdata", tt.args.mapFile)); (err != nil) != tt.wantErr {
+				t.Errorf("LoadFromFile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			n, e := Size(tt.args.land)
+			if n != tt.args.nodes {
+				t.Errorf("LoadFromFile() = nodes(%v), want %v", n, tt.args.nodes)
+			}
+			if e != tt.args.edges {
+				t.Errorf("LoadFromFile() = edges(%v), want %v", e, tt.args.edges)
 			}
 		})
 	}

@@ -1,0 +1,3 @@
+C1 west=C2 north=C1 east=C3
+C1 south=C2
+C6 smth=C8
