@@ -62,17 +62,17 @@ func run(cmd *cobra.Command, args []string) {
 		return
 	}
 	n, e := land.Size(world)
-	fmt.Println("This planet has", n, "cities interconnected with", e, "routes")
+	fmt.Println("This planet has", n, "cities interconnected by", e, "routes")
 	// initialize the invasion
 	invasion := aliens.NewInvasion(world, aliensN, maxIterations)
 	fmt.Println("The invasion has begun!")
 	for {
 		round, err := aliens.Run(world, invasion)
-		fmt.Println("📅 Day", round, "is over")
+		fmt.Println("📅 Day", round, "has ended")
 		if err != nil {
-			fmt.Println("On day", round, " the invasion is over")
+			fmt.Println("The invasion is over!")
 			n, e = land.Size(world)
-			fmt.Println("This planet is left with ", n, "cities interconnected with", e, "routes")
+			fmt.Println("This planet is left with ", n, "cities interconnected by", e, "routes")
 			log.Debug(err)
 			land.SaveToFile(world, landOutFile)
 			fmt.Println("The map was saved in ", landOutFile)

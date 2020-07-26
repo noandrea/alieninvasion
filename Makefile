@@ -92,7 +92,6 @@ git-release:
 	git tag $(GIT_DESCR) --delete
 	git add CHANGELOG.md && git commit -m "v$(GIT_DESCR)" -m "Changelog: https://github.com/noandrea/alieninvasion/blob/master/CHANGELOG.md"
 	git tag $(GIT_DESCR)
-	git push --tags
 	@echo release complete
 
 
