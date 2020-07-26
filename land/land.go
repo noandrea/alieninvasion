@@ -145,6 +145,16 @@ func DestroyCity(land *Land, id uint32) {
 	delete(land.cities, id)
 }
 
+// Optimize remove nodes without edges
+func Optimize(land *Land) {
+	for id, routes := range land.routes {
+		if len(routes) == 0 {
+			delete(land.routes, id)
+			delete(land.cities, id)
+		}
+	}
+}
+
 // LoadFromFile load a land definition from a file
 func LoadFromFile(land *Land, mapFile string) (err error) {
 	file, err := os.Open(mapFile)
@@ -158,6 +168,7 @@ func LoadFromFile(land *Land, mapFile string) (err error) {
 			log.Error(e)
 		}
 	}
+	Optimize(land)
 	err = scanner.Err()
 	return
 }
