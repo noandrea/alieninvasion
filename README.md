@@ -58,7 +58,7 @@ the​ assumptions​ you​ are​ making.
 
 **Debug mode**
 
-[![asciicast](https://asciinema.org/a/349792.png)](https://asciinema.org/a/349793)
+[![asciicast](https://asciinema.org/a/349793.svg)](https://asciinema.org/a/349793)
 
 ## Usage
 
